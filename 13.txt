@@ -1,0 +1,121 @@
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Define the data
+data = {
+    'City': ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Ahmedabad', 'Chennai', 'Kolkata', 'Pune', 'Jaipur', 'Lucknow'],
+    'Population': [20411000, 16787941, 8443675, 6809970, 5570585, 4646732, 4486679, 3124458, 3046163, 2817105],
+    'Area': [603, 1484, 709, 650, 464, 426, 185, 331, 485, 631],
+    'Urban_Agriculture_Area': [1500, 1800, 1300, 1100, 1000, 1200, 800, 950, 600, 700],
+    'Food_Security_Index': [75, 70, 72, 68, 65, 73, 60, 69, 64, 62],
+    'Sustainability_Index': [80, 78, 76, 74, 70, 77, 68, 72, 71, 69]
+}
+
+# Create a DataFrame
+df = pd.DataFrame(data)
+
+# Streamlit App
+
+st.title('Urban Agriculture Data Analysis in India')
+
+# Sidebar for navigation
+st.sidebar.title('Navigation')
+options = st.sidebar.radio('Select an option:', 
+                           ['Show Basic Statistics', 
+                            'Show Correlation Matrix', 
+                            'Show Scatter Plots', 
+                            'Show Box Plots', 
+                            'Run Linear Regression'])
+
+# Display basic statistics
+if options == 'Show Basic Statistics':
+    st.header('Basic Statistics')
+    st.write(df.describe())
+
+# Display correlation matrix
+if options == 'Show Correlation Matrix':
+    st.header('Correlation Matrix')
+    corr_matrix = df.drop('City', axis=1).corr()
+    st.write(corr_matrix)
+    
+    # Display heatmap
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
+    st.pyplot(plt.gcf())
+
+# Display scatter plots
+if options == 'Show Scatter Plots':
+    st.header('Scatter Plots')
+    plt.figure(figsize=(10, 6))
+    
+    plt.subplot(1, 2, 1)
+    sns.scatterplot(x='Urban_Agriculture_Area', y='Food_Security_Index', hue='City', data=df)
+    plt.title('Urban Agriculture Area vs Food Security Index')
+    plt.xlabel('Urban Agriculture Area (hectares)')
+    plt.ylabel('Food Security Index')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    
+    plt.subplot(1, 2, 2)
+    sns.scatterplot(x='Urban_Agriculture_Area', y='Sustainability_Index', hue='City', data=df)
+    plt.title('Urban Agriculture Area vs Sustainability Index')
+    plt.xlabel('Urban Agriculture Area (hectares)')
+    plt.ylabel('Sustainability Index')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    
+    st.pyplot(plt.gcf())
+
+# Display box plots
+if options == 'Show Box Plots':
+    st.header('Box Plots')
+    plt.figure(figsize=(14, 6))
+    
+    plt.subplot(1, 2, 1)
+    sns.boxplot(x='City', y='Food_Security_Index', data=df)
+    plt.title('Food Security Index by City')
+    plt.xticks(rotation=90)
+    
+    plt.subplot(1, 2, 2)
+    sns.boxplot(x='City', y='Sustainability_Index', data=df)
+    plt.title('Sustainability Index by City')
+    plt.xticks(rotation=90)
+    
+    st.pyplot(plt.gcf())
+
+# Run linear regression
+if options == 'Run Linear Regression':
+    st.header('Linear Regression')
+    
+    X = df[['Urban_Agriculture_Area']]
+    y = df['Food_Security_Index']
+    
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    # Create and train the model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    
+    # Make predictions
+    y_pred = model.predict(X_test)
+    
+    # Evaluate the model
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+    
+    st.write(f'Mean Squared Error: {mse}')
+    st.write(f'R^2 Score: {r2}')
+    
+    # Plot the regression line
+    plt.figure(figsize=(10, 6))
+    plt.scatter(X_test, y_test, color='blue', label='Actual')
+    plt.plot(X_test, y_pred, color='red', linewidth=2, label='Predicted')
+    plt.title('Linear Regression: Urban Agriculture Area vs Food Security Index')
+    plt.xlabel('Urban Agriculture Area (hectares)')
+    plt.ylabel('Food Security Index')
+    plt.legend()
+    st.pyplot(plt.gcf())
